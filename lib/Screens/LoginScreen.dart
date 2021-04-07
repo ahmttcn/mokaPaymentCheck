@@ -1,9 +1,12 @@
 import 'dart:convert';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:payment_check/Models/Firm.dart';
 import 'package:payment_check/Models/SharedPref.dart';
 import 'package:payment_check/Models/User.dart';
+import 'package:payment_check/Screens/AddFirmScreen.dart';
 import 'package:payment_check/Screens/MainScreen.dart';
 import 'package:payment_check/Utils/Services.dart';
 
@@ -28,7 +31,8 @@ class _LoginScreenState extends State<LoginScreen> {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
     return Stack(
-      overflow: Overflow.visible,
+      //overflow: Overflow.visible,
+      clipBehavior: Clip.hardEdge,
       children: <Widget>[
         Image.asset(
           "assets/images/background_sky.jpg",
@@ -46,38 +50,51 @@ class _LoginScreenState extends State<LoginScreen> {
 }
 
 Widget loginPage(BuildContext context) {
-  return new Container(
-    height: MediaQuery.of(context).size.height,
-    width: MediaQuery.of(context).size.width,
-    decoration: BoxDecoration(
-      color: Colors.white,
-      image: DecorationImage(
-        colorFilter: new ColorFilter.mode(
-            Colors.black.withOpacity(0.15), BlendMode.dstATop),
-        image: AssetImage('assets/images/background_sky.jpg'),
-        fit: BoxFit.cover,
+  return new SingleChildScrollView(
+    scrollDirection: Axis.vertical,
+    child: Container(
+      height: MediaQuery.of(context).size.height,
+      width: MediaQuery.of(context).size.width,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        image: DecorationImage(
+          colorFilter: new ColorFilter.mode(
+              Colors.black.withOpacity(0.15), BlendMode.dstATop),
+          image: AssetImage('assets/images/background_sky.jpg'),
+          fit: BoxFit.cover,
+        ),
       ),
-    ),
-    child: new Column(
-      children: <Widget>[
-        loginIcon(),
-        textFieldLabel("Kullanıcı Adı"),
-        usernameTextField(context),
-        divider(),
-        textFieldLabel("Parola"),
-        passwordTextField(context),
-        divider(),
-        forgotPasswordField(),
-        loginButton(context),
-      ],
+      child: new Column(
+        children: <Widget>[
+          loginIcon(),
+          textFieldLabel("Kullanıcı Adı"),
+          usernameTextField(context),
+          divider(),
+          textFieldLabel("Parola"),
+          passwordTextField(context),
+          divider(),
+          forgotPasswordField(),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              loginButton(context, "Giriş Yap", "0A234A"),
+              SizedBox(
+                width: MediaQuery.of(context).size.width / 15,
+              ),
+              addFirmButton(context),
+            ],
+          ),
+        ],
+      ),
     ),
   );
 }
 
-Container loginButton(BuildContext context) {
+addFirmButton(BuildContext context) {
   return new Container(
-    width: MediaQuery.of(context).size.width,
-    margin: const EdgeInsets.only(left: 30.0, right: 30.0, top: 20.0),
+    width: MediaQuery.of(context).size.width / 2.6,
+    //margin: const EdgeInsets.only(left: 20.0, right: 20.0, top: 20.0),
     alignment: Alignment.center,
     child: new Row(
       children: <Widget>[
@@ -86,30 +103,10 @@ Container loginButton(BuildContext context) {
             shape: new RoundedRectangleBorder(
               borderRadius: new BorderRadius.circular(30.0),
             ),
-            color: HexColor("0A234A"),
+            color: HexColor("ff3232"),
             onPressed: () async {
-              //await SharedPref.init();
-              await Services.login(usernameController.text.trim(),
-                      passwordController.text.trim())
-                  .then((response) {
-                Map responseMap = json.decode(response.body);
-
-                if (responseMap['error'] == false) {
-                  User _user = User.fromJson(responseMap);
-
-                  SharedPref.addUser(_user).then((value) {
-                    if (value) {
-                      Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => MainScreen()));
-                    } else
-                      print("Error! Try Again");
-                  });
-                } else {
-                  print("Please check your internet connection");
-                }
-              });
+              Navigator.push(
+                  context, MaterialPageRoute(builder: (context) => AddFirm()));
             },
             child: new Container(
               padding: const EdgeInsets.symmetric(
@@ -121,7 +118,7 @@ Container loginButton(BuildContext context) {
                 children: <Widget>[
                   new Expanded(
                     child: Text(
-                      "LOGIN",
+                      "Firma Ekle",
                       textAlign: TextAlign.center,
                       style: TextStyle(
                           color: Colors.white, fontWeight: FontWeight.bold),
@@ -135,6 +132,111 @@ Container loginButton(BuildContext context) {
       ],
     ),
   );
+}
+
+Container loginButton(
+    BuildContext context, String buttonText, String buttonColor) {
+  return new Container(
+    width: MediaQuery.of(context).size.width / 2.6,
+    //margin: const EdgeInsets.only(left: 20.0, right: 20.0, top: 20.0),
+    alignment: Alignment.center,
+    child: new Row(
+      children: <Widget>[
+        new Expanded(
+          child: new FlatButton(
+            shape: new RoundedRectangleBorder(
+              borderRadius: new BorderRadius.circular(30.0),
+            ),
+            color: HexColor(buttonColor),
+            onPressed: () async {
+              await logIn(context)
+                  .then((value) async => await alertDialog(value, context));
+            },
+            child: new Container(
+              padding: const EdgeInsets.symmetric(
+                vertical: 20.0,
+                horizontal: 20.0,
+              ),
+              child: new Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  new Expanded(
+                    child: Text(
+                      buttonText,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+Future<bool> alertDialog(String message, BuildContext context) {
+  return showCupertinoDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return CupertinoAlertDialog(
+        title: Text("Sistem Mesajı"),
+        content: Text(message),
+        actions: [
+          CupertinoDialogAction(
+            child: Text("OK"),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          )
+        ],
+      );
+    },
+    barrierDismissible: true,
+  );
+}
+
+Future<String> logIn(BuildContext context) async {
+  String message;
+  if (SharedPref.isFirmAdded() != "none") {
+    Map variables = new Map();
+    Firm _firm = SharedPref.getFirm();
+
+    variables['dbUsername'] = _firm.username.toString();
+    variables['dbPassword'] = _firm.password.toString();
+    variables['username'] = usernameController.text.trim();
+    variables['password'] = passwordController.text.trim();
+    print(variables);
+
+    await Services.httpPost(variables).then((response) async {
+      Map responseMap = json.decode(response.body);
+
+      if (responseMap['error'] == false) {
+        User _user = User.fromJson(responseMap);
+
+        await SharedPref.addUser(_user).then((value) {
+          if (value) {
+            message = "Başarılı";
+            Navigator.pushReplacement(
+                context, MaterialPageRoute(builder: (context) => MainScreen()));
+          } else {
+            print("Error! Try Again");
+            message = "Error! Try Again!";
+          }
+        });
+      } else {
+        print("Please check your internet connection");
+        message = responseMap['message'];
+      }
+    });
+  } else {
+    print("Önce Firma Ekleyiniz");
+    message = "Lütfen Önce Firma Tanımlayınız!";
+  }
+  return message;
 }
 
 Row forgotPasswordField() {

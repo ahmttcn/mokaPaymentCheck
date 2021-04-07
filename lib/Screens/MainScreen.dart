@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:payment_check/Models/SharedPref.dart';
+import 'package:payment_check/Screens/LoginScreen.dart';
 
 class MainScreen extends StatefulWidget {
   MainScreen({Key key}) : super(key: key);
@@ -13,14 +15,30 @@ class _MainScreenState extends State<MainScreen> {
     return new Scaffold(
       appBar: new AppBar(
         title: new Text("Welcome In SplashScreen Package"),
-        automaticallyImplyLeading: false,
+        automaticallyImplyLeading: true,
       ),
       body: new Center(
-        child: new Text(
-          "Succeeded!",
-          style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 30.0),
+        child: Column(
+          verticalDirection: VerticalDirection.down,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            SizedBox(
+              height: 200,
+            ),
+            new Text(
+              "Succeeded!",
+              style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 30.0),
+            ),
+            IconButton(icon: Icon(Icons.logout), onPressed: logOut),
+          ],
         ),
       ),
     );
+  }
+
+  logOut() async {
+    await SharedPref.logOut();
+    Navigator.pushReplacement(
+        context, MaterialPageRoute(builder: (context) => LoginScreen()));
   }
 }

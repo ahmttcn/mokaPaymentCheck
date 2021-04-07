@@ -1,4 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'Firm.dart';
 import 'User.dart';
 
 /// This class is made for the store user local data
@@ -52,6 +53,39 @@ class SharedPref {
     }
   }
 
+  static Future addFirm(Firm firm) async {
+    try {
+      await _sharedPref.setString("firmUsername", firm.username.toString());
+      await _sharedPref.setString("firmPassword", firm.password.toString());
+      await _sharedPref.setString("firm", "added");
+      return true;
+    } catch (e) {
+      print("Shared Error");
+      print(e);
+    }
+  }
+
+  static getFirm() {
+    try {
+      Firm firm = Firm(
+        username: _sharedPref.getString("firmUsername"),
+        password: _sharedPref.getString("firmPassword"),
+      );
+      return firm;
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  static deleteFirm() async {
+    try {
+      await _sharedPref.remove("firmUsername");
+      await _sharedPref.remove("firmPassword");
+    } catch (e) {
+      print(e);
+    }
+  }
+
   static getUser() {
     try {
       User user = User(
@@ -70,8 +104,7 @@ class SharedPref {
   }
 
   static Future logOut() async {
-    await _sharedPref.setString("logIn", "loggedOut");
-    await _sharedPref.clear();
+    return await _sharedPref.setString("logIn", "loggedOut");
   }
 
   static deleteUser() async {
@@ -93,6 +126,14 @@ class SharedPref {
   static getLoggedIn() {
     try {
       return _sharedPref.getString("logIn") ?? "loggedOut";
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  static isFirmAdded() {
+    try {
+      return _sharedPref.getString("firm") ?? "none";
     } catch (e) {
       print(e);
     }

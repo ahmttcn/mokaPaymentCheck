@@ -29,6 +29,24 @@ class Services {
     }
   }
 
+  static Future<http.Response> httpPost(Map variables) async {
+    try {
+      final response = await http.post(Urls.login, body: variables);
+      print('Login Response: ${response.body}');
+
+      if (200 == response.statusCode) {
+        return response;
+      } else {
+        print(response.statusCode.toString());
+        return http.Response("emptybody", 400);
+      }
+    } catch (e) {
+      print(e.toString());
+      return http.Response(
+          "emptybody", 400); // return an empty list on exception/error
+    }
+  }
+
   // Method to add employee to the database...
   static Future<String> addEmployee(String firstName, String lastName) async {
     try {

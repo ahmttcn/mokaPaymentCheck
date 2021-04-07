@@ -1,4 +1,4 @@
 class Urls {
   static final String login =
-      "http://192.168.0.14/webServicePHP/cavusogluPaymentService.php?apicall=login";
+      "http://192.168.1.33/webServicePHP/cavusogluPaymentService.php?apicall=login";
 }
