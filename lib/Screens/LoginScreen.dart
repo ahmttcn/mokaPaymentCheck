@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
@@ -9,6 +8,7 @@ import 'package:payment_check/Models/User.dart';
 import 'package:payment_check/Screens/AddFirmScreen.dart';
 import 'package:payment_check/Screens/MainScreen.dart';
 import 'package:payment_check/Utils/Services.dart';
+import 'package:payment_check/Utils/Urls.dart';
 
 class LoginScreen extends StatefulWidget {
   LoginScreen({Key key}) : super(key: key);
@@ -211,7 +211,8 @@ Future<String> logIn(BuildContext context) async {
     variables['password'] = passwordController.text.trim();
     print(variables);
 
-    await Services.httpPost(variables).then((response) async {
+    await Services.httpPost(Urls.login, variables: variables)
+        .then((response) async {
       Map responseMap = json.decode(response.body);
 
       if (responseMap['error'] == false) {

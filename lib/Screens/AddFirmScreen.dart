@@ -3,8 +3,10 @@ import 'package:barcode_scan/barcode_scan.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:payment_check/Models/Firm.dart';
+import 'package:payment_check/Models/MokaFirmInfo.dart';
 import 'package:payment_check/Models/SharedPref.dart';
 import 'package:payment_check/Utils/Services.dart';
+import 'package:payment_check/Utils/Urls.dart';
 import 'dart:convert';
 
 import 'LoginScreen.dart';
@@ -160,14 +162,29 @@ class _AddFirmState extends State<AddFirm> {
     variables['dbPassword'] = qrMap['password'].toString();
     variables['addFirm'] = "addFirm";
 
-    await Services.httpPost(variables).then((response) async {
+    await Services.httpPost(Urls.addFirm, variables: variables)
+        .then((response) async {
       Map responseMap = json.decode(response.body);
 
       if (responseMap['error'] == false) {
         Firm firm = Firm(
           username: qrMap['username'],
           password: qrMap['password'],
+          serialId: qrMap['username'],
         );
+        //print(responseMap['moka'].toString());
+        MokaFirmInfo mokaFirmInfo;
+        if (responseMap['message'] == "Moka") {
+          mokaFirmInfo = new MokaFirmInfo.fromJson(responseMap['moka']);
+          await SharedPref.addMoka(mokaFirmInfo).then((value) {
+            if (value) {
+              print("Moka added");
+              message = "Moka Eklendi.";
+            } else
+              print("Error! Try Again");
+          });
+        }
+        //print(mokaFirmInfo.dealerCode.toString());
         await SharedPref.addFirm(firm).then((value) {
           if (value) {
             print("Firm added");

@@ -7,31 +7,9 @@ class Services {
   static const _UPDATE_EMP_ACTION = 'UPDATE_EMP';
   static const _DELETE_EMP_ACTION = 'DELETE_EMP';
 
-  static Future<http.Response> login(String username, String password) async {
+  static Future<http.Response> httpPost(String url, {Map variables}) async {
     try {
-      var map = Map<String, String>();
-      map['username'] = username;
-      map['password'] = password;
-
-      final response = await http.post(Urls.login, body: map);
-      print('Login Response: ${response.body}');
-
-      if (200 == response.statusCode) {
-        return response;
-      } else {
-        print(response.statusCode.toString());
-        return http.Response("emptybody", 400);
-      }
-    } catch (e) {
-      print(e.toString());
-      return http.Response(
-          "emptybody", 400); // return an empty list on exception/error
-    }
-  }
-
-  static Future<http.Response> httpPost(Map variables) async {
-    try {
-      final response = await http.post(Urls.login, body: variables);
+      final response = await http.post(url, body: variables);
       print('Login Response: ${response.body}');
 
       if (200 == response.statusCode) {

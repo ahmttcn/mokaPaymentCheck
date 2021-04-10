@@ -1,3 +1,4 @@
+import 'package:payment_check/Models/MokaFirmInfo.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'Firm.dart';
 import 'User.dart';
@@ -35,7 +36,9 @@ class SharedPref {
   static Future addUser(User user) async {
     print(user.empId);
     print(user.name);
-    print(user.authority);
+    print(user.posIzin);
+    print(user.smsIzin);
+    print(user.address);
 
     try {
       await _sharedPref.setInt("empId", user.empId);
@@ -44,7 +47,12 @@ class SharedPref {
       await _sharedPref.setString("username", user.username.toString());
       await _sharedPref.setString("password", user.password.toString());
       await _sharedPref.setString("email", user.email.toString());
-      await _sharedPref.setString("authority", user.authority.toString());
+      await _sharedPref.setString("posIzin", user.posIzin.toString());
+      await _sharedPref.setString("smsIzin", user.smsIzin.toString());
+      await _sharedPref.setString("city", user.city.toString());
+      await _sharedPref.setString("state", user.state.toString());
+      await _sharedPref.setString("address", user.address.toString());
+      await _sharedPref.setString("phoneNumber", user.phoneNumber.toString());
       await _sharedPref.setString("logIn", "loggedIn");
       return true;
     } catch (e) {
@@ -57,6 +65,7 @@ class SharedPref {
     try {
       await _sharedPref.setString("firmUsername", firm.username.toString());
       await _sharedPref.setString("firmPassword", firm.password.toString());
+      await _sharedPref.setString("firmSerialId", firm.serialId.toString());
       await _sharedPref.setString("firm", "added");
       return true;
     } catch (e) {
@@ -70,6 +79,7 @@ class SharedPref {
       Firm firm = Firm(
         username: _sharedPref.getString("firmUsername"),
         password: _sharedPref.getString("firmPassword"),
+        serialId: _sharedPref.getString("firmSerialId"),
       );
       return firm;
     } catch (e) {
@@ -81,6 +91,7 @@ class SharedPref {
     try {
       await _sharedPref.remove("firmUsername");
       await _sharedPref.remove("firmPassword");
+      await _sharedPref.remove("firmSerialId");
     } catch (e) {
       print(e);
     }
@@ -89,14 +100,18 @@ class SharedPref {
   static getUser() {
     try {
       User user = User(
-        empId: _sharedPref.getInt("empId"),
-        name: _sharedPref.getString("name"),
-        surname: _sharedPref.getString("surname"),
-        username: _sharedPref.getString("username"),
-        password: _sharedPref.getString("password"),
-        email: _sharedPref.getString("email"),
-        authority: _sharedPref.getString("authority"),
-      );
+          empId: _sharedPref.getInt("empId"),
+          name: _sharedPref.getString("name"),
+          surname: _sharedPref.getString("surname"),
+          username: _sharedPref.getString("username"),
+          password: _sharedPref.getString("password"),
+          email: _sharedPref.getString("email"),
+          posIzin: _sharedPref.getString("posIzin"),
+          smsIzin: _sharedPref.getString("smsIzin"),
+          city: _sharedPref.getString("city"),
+          state: _sharedPref.getString("state"),
+          address: _sharedPref.getString("address"),
+          phoneNumber: _sharedPref.getString("phoneNumber"));
       return user;
     } catch (e) {
       print(e);
@@ -115,9 +130,51 @@ class SharedPref {
       await _sharedPref.remove("username");
       await _sharedPref.remove("password");
       await _sharedPref.remove("email");
-      await _sharedPref.remove("authority");
+      await _sharedPref.remove("posIzin");
+      await _sharedPref.remove("smsIzin");
+      await _sharedPref.remove("city");
+      await _sharedPref.remove("state");
+      await _sharedPref.remove("address");
+      await _sharedPref.remove("phoneNumber");
       await _sharedPref.setString("logIn", "loggedOut");
       //await _sharedPref.remove("logIn");
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  static Future addMoka(MokaFirmInfo firm) async {
+    try {
+      await _sharedPref.setString("mokaUsername", firm.username.toString());
+      await _sharedPref.setString("mokaPassword", firm.password.toString());
+      await _sharedPref.setString("mokaDealerCode", firm.dealerCode.toString());
+      await _sharedPref.setString("moka", "added");
+      return true;
+    } catch (e) {
+      print("Shared Error");
+      print(e);
+    }
+  }
+
+  static getMoka() {
+    try {
+      MokaFirmInfo firm = MokaFirmInfo(
+        username: _sharedPref.getString("mokaUsername"),
+        password: _sharedPref.getString("mokaPassword"),
+        dealerCode: _sharedPref.getString("mokaDealerCode"),
+      );
+      return firm;
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  static deleteMoka() async {
+    try {
+      await _sharedPref.remove("mokaUsername");
+      await _sharedPref.remove("mokaPassword");
+      await _sharedPref.remove("mokaDealerCode");
+      await _sharedPref.remove("moka");
     } catch (e) {
       print(e);
     }
@@ -134,6 +191,14 @@ class SharedPref {
   static isFirmAdded() {
     try {
       return _sharedPref.getString("firm") ?? "none";
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  static isMokaAdded() {
+    try {
+      return _sharedPref.getString("moka") ?? "none";
     } catch (e) {
       print(e);
     }

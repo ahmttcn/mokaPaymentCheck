@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:hexcolor/hexcolor.dart';
 import 'package:payment_check/Models/SharedPref.dart';
 import 'package:payment_check/Screens/LoginScreen.dart';
+import 'package:payment_check/Screens/Profile.dart';
+import 'package:payment_check/Screens/QueryScreen.dart';
 
 class MainScreen extends StatefulWidget {
   MainScreen({Key key}) : super(key: key);
@@ -12,27 +15,35 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-      appBar: new AppBar(
-        title: new Text("Welcome In SplashScreen Package"),
-        automaticallyImplyLeading: true,
-      ),
-      body: new Center(
-        child: Column(
-          verticalDirection: VerticalDirection.down,
-          crossAxisAlignment: CrossAxisAlignment.center,
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+          body: NestedScrollView(
+        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+          return <Widget>[
+            new SliverAppBar(
+              title: Text('Ödeme Sorgulama'),
+              backgroundColor: HexColor("1f1f1f"),
+              centerTitle: true,
+              pinned: false,
+              floating: true,
+              automaticallyImplyLeading: false,
+              bottom: TabBar(
+                tabs: [
+                  Tab(child: Icon(Icons.home)),
+                  Tab(child: Icon(Icons.person)),
+                ],
+              ),
+            ),
+          ];
+        },
+        body: TabBarView(
           children: <Widget>[
-            SizedBox(
-              height: 200,
-            ),
-            new Text(
-              "Succeeded!",
-              style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 30.0),
-            ),
-            IconButton(icon: Icon(Icons.logout), onPressed: logOut),
+            QueryScreen(),
+            Profile(),
           ],
         ),
-      ),
+      )),
     );
   }
 
