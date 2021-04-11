@@ -39,7 +39,3 @@ class Data {
     return data;
   }
 }
-
-int intYunus = 10;
-String str = "jksdhfkshdfıushfuhsdfs";
-double double1 = 0.005;
