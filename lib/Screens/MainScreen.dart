@@ -12,13 +12,30 @@ class MainScreen extends StatefulWidget {
   _MainScreenState createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _MainScreenState extends State<MainScreen>
+    with SingleTickerProviderStateMixin {
+  TabController _tabController;
+  ScrollController _scrollController;
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _scrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-          body: NestedScrollView(
+    return Scaffold(
+      body: NestedScrollView(
+        controller: _scrollController,
+        scrollDirection: Axis.vertical,
         headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
           return <Widget>[
             new SliverAppBar(
@@ -27,8 +44,12 @@ class _MainScreenState extends State<MainScreen> {
               centerTitle: true,
               pinned: false,
               floating: true,
+              snap: true,
+              stretch: true,
+              forceElevated: innerBoxIsScrolled,
               automaticallyImplyLeading: false,
               bottom: TabBar(
+                controller: _tabController,
                 tabs: [
                   Tab(child: Icon(Icons.home)),
                   Tab(child: Icon(Icons.person)),
@@ -38,12 +59,13 @@ class _MainScreenState extends State<MainScreen> {
           ];
         },
         body: TabBarView(
+          controller: _tabController,
           children: <Widget>[
             QueryScreen(),
             Profile(),
           ],
         ),
-      )),
+      ),
     );
   }
 

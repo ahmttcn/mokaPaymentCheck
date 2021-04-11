@@ -1,14 +1,17 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:payment_check/Models/GetPaymentList.dart';
+import 'package:payment_check/Models/MokaPaymentData.dart';
 import 'package:payment_check/Models/MokaFirmInfo.dart';
 import 'package:payment_check/Models/PaymentDealerAuthentication.dart';
 import 'package:payment_check/Models/PaymentDealerRequest.dart';
+import 'package:payment_check/Models/PaymentList.dart';
 import 'package:payment_check/Models/SharedPref.dart';
 import 'package:payment_check/Utils/Services.dart';
 import 'package:crypto/crypto.dart';
+import 'package:intl/intl.dart';
 
 class QueryScreen extends StatefulWidget {
   QueryScreen({Key key}) : super(key: key);
@@ -18,138 +21,166 @@ class QueryScreen extends StatefulWidget {
 }
 
 class _QueryScreenState extends State<QueryScreen> {
-  DateTime startDate, endDate;
-  String startText = DateTime.now().day.toString() +
-          "/" +
-          DateTime.now().month.toString() +
-          "/" +
-          DateTime.now().year.toString() +
-          " " +
-          DateTime.now().hour.toString() +
-          ":" +
-          DateTime.now().minute.toString(),
-      endText = DateTime.now().day.toString() +
-          "/" +
-          DateTime.now().month.toString() +
-          "/" +
-          DateTime.now().year.toString() +
-          " " +
-          DateTime.now().hour.toString() +
-          ":" +
-          DateTime.now().minute.toString();
+  String startStr = DateFormat('yyyy-MM-dd kk:mm').format(DateTime.now());
+  String endStr = DateFormat('yyyy-MM-dd kk:mm').format(DateTime.now());
+  List data;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: HexColor("262626"),
-      body: Column(
-        children: <Widget>[
-          Card(
-            margin: EdgeInsets.all(25),
-            color: HexColor("000005"),
-            child: Column(
-              children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    TextButton(
-                      onPressed: () {
-                        DatePicker.showDateTimePicker(
-                          context,
-                          showTitleActions: true,
-                          onChanged: (date) {
-                            print('change $date in time zone ' +
-                                date.timeZoneOffset.inHours.toString());
-                          },
-                          onConfirm: (date) {
-                            setState(() {
-                              startText = date.day.toString() +
-                                  "/" +
-                                  date.month.toString() +
-                                  "/" +
-                                  date.year.toString() +
-                                  " " +
-                                  date.hour.toString() +
-                                  ":" +
-                                  date.minute.toString();
-                            });
-                            print('confirm $date');
-                            startDate = date;
-                          },
-                          currentTime: DateTime.now(),
-                          locale: LocaleType.tr,
-                        );
-                      },
-                      child: Text(
-                        startText,
-                        style: TextStyle(color: Colors.black),
-                      ),
-                      style: ButtonStyle(
-                        backgroundColor:
-                            MaterialStateProperty.all<Color>(Colors.blueAccent),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        DatePicker.showDateTimePicker(
-                          context,
-                          showTitleActions: true,
-                          onChanged: (date) {
-                            print('change $date in time zone ' +
-                                date.timeZoneOffset.inHours.toString());
-                          },
-                          onConfirm: (date) {
-                            setState(() {
-                              endText = date.day.toString() +
-                                  "/" +
-                                  date.month.toString() +
-                                  "/" +
-                                  date.year.toString() +
-                                  " " +
-                                  date.hour.toString() +
-                                  ":" +
-                                  date.minute.toString();
-                            });
-                            print('confirm $date');
-                            startDate = date;
-                          },
-                          currentTime: DateTime.now(),
-                          locale: LocaleType.tr,
-                        );
-                      },
-                      child: Text(
-                        endText,
-                        style: TextStyle(color: Colors.black),
-                      ),
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            Colors.amberAccent),
-                      ),
-                    ),
-                  ],
-                ),
-                TextButton(
-                  onPressed: () async {
-                    await makeQuery();
-                  },
-                  child: Text(
-                    "Ödeme Sorgula",
-                    style: TextStyle(color: Colors.black),
-                  ),
-                  style: ButtonStyle(
-                    backgroundColor:
-                        MaterialStateProperty.all<Color>(Colors.redAccent),
-                  ),
-                )
-              ],
-            ),
+      backgroundColor: HexColor("1f1f1f"),
+      body: Flex(
+        direction: Axis.vertical,
+        children: [
+          designCard(),
+          Divider(
+            color: Colors.redAccent,
+            height: 12,
+            endIndent: 10,
+            indent: 10,
+            thickness: 1,
+          ),
+          Expanded(
+            child: futureBuilder(),
           ),
         ],
       ),
     );
   }
 
-  Future<String> makeQuery() async {
+  FutureBuilder<List<PaymentList>> futureBuilder() {
+    return FutureBuilder(
+      future: makeQuery(),
+      builder: (context, snapshot) {
+        switch (snapshot.connectionState) {
+          case ConnectionState.none:
+            return Text("none");
+            break;
+          case ConnectionState.waiting:
+            return Center(
+                child: Text(
+              "Loading...",
+              style: TextStyle(color: Colors.white, fontSize: 24),
+            ));
+            break;
+          default:
+            if (snapshot.hasError) {
+              return Text("Error: ${snapshot.error}",
+                  style: TextStyle(color: Colors.white, fontSize: 24));
+            } else {
+              return buildList(context, snapshot);
+            }
+        }
+      },
+    );
+  }
+
+  Card designCard() {
+    return Card(
+      margin: EdgeInsets.fromLTRB(25, 25, 25, 5),
+      color: HexColor("000005"),
+      child: Column(
+        children: <Widget>[
+          designCardRow(),
+          //designQueryButton(),
+        ],
+      ),
+    );
+  }
+
+  TextButton designQueryButton() {
+    return TextButton(
+      onPressed: () async {
+        await makeQuery().then((value) {
+          print(value[0].cardHolderFullName);
+        });
+      },
+      child: Text(
+        "Ödeme Sorgula",
+        style: TextStyle(color: Colors.black),
+      ),
+      style: ButtonStyle(
+        backgroundColor: MaterialStateProperty.all<Color>(Colors.redAccent),
+      ),
+    );
+  }
+
+  Row designCardRow() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      mainAxisSize: MainAxisSize.max,
+      children: [
+        TextButton(
+          onPressed: () {
+            DatePicker.showDateTimePicker(
+              context,
+              showTitleActions: true,
+              onChanged: (date) {
+                print('change $date in time zone ' +
+                    date.timeZoneOffset.inHours.toString());
+              },
+              onConfirm: (date) {
+                setState(() {
+                  startStr = DateFormat('yyyy-MM-dd kk:mm').format(date);
+                });
+                print('confirm $date');
+              },
+              currentTime: DateTime.now(),
+              locale: LocaleType.tr,
+            );
+          },
+          child: Text(
+            startStr,
+            style: TextStyle(color: Colors.black),
+          ),
+          style: ButtonStyle(
+            backgroundColor:
+                MaterialStateProperty.all<Color>(Colors.blueAccent),
+          ),
+        ),
+        TextButton(
+          onPressed: () {
+            DatePicker.showDateTimePicker(
+              context,
+              showTitleActions: true,
+              onChanged: (date) {
+                print('change $date in time zone ' +
+                    date.timeZoneOffset.inHours.toString());
+              },
+              onConfirm: (date) {
+                setState(() {
+                  endStr = DateFormat('yyyy-MM-dd kk:mm').format(date);
+                });
+                print('confirm $date');
+                String formattedDate =
+                    DateFormat('yyyy-MM-dd kk:mm').format(date);
+                endStr = formattedDate.toString();
+              },
+              currentTime: DateTime.now(),
+              locale: LocaleType.tr,
+            );
+          },
+          child: Text(
+            endStr,
+            style: TextStyle(color: Colors.black),
+          ),
+          style: ButtonStyle(
+            backgroundColor:
+                MaterialStateProperty.all<Color>(Colors.amberAccent),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<List<PaymentList>> makeQuery() async {
+    Map responseMap = new Map();
+    List<PaymentList> paymentList = [];
     MokaFirmInfo mokaFirmInfo = SharedPref.getMoka();
     PaymentDealerAuthentication paymentDealerAuthentication =
         new PaymentDealerAuthentication();
@@ -164,23 +195,101 @@ class _QueryScreenState extends State<QueryScreen> {
         'PD' +
         mokaFirmInfo.password);
     paymentDealerAuthentication.checkKey = sha256.convert(bytes).toString();
-    paymentDealerRequest.paymentStartDate = '2020-03-01 09:00';
-    paymentDealerRequest.paymentEndDate = '2021-04-10 09:00';
-    paymentDealerRequest.paymentStatus = 1;
-    paymentDealerRequest.trxStatus = 1;
-    Map example = new Map();
-    example['PaymentDealerAuthentication'] =
-        PaymentDealerAuthentication().toMap(paymentDealerAuthentication);
-    example['PaymentDealerRequest'] =
-        PaymentDealerRequest().toMap(paymentDealerRequest);
-    print(example.toString());
+    paymentDealerRequest.paymentStartDate = startStr;
+    paymentDealerRequest.paymentEndDate = endStr;
+
+    GetPaymentList getPaymentList = new GetPaymentList(
+        paymentDealerAuthentication: paymentDealerAuthentication,
+        paymentDealerRequest: paymentDealerRequest);
+    print(paymentDealerAuthentication.username.toString());
     await Services.httpPost(
-            'https://service.moka.com/PaymentDealer/GetPaymentList',
-            variables: example)
-        .then((response) async {
-      Map responseMap = json.decode(response.body);
-      print(responseMap.toString());
+      'https://service.moka.com/PaymentDealer/GetPaymentList',
+      isJson: true,
+      variables: getPaymentList.toJson(),
+    ).then((response) async {
+      responseMap = json.decode(response.body);
+      MokaPaymentData mokaPaymentData = MokaPaymentData.fromJson(responseMap);
+      print("MokaPaymentData: ${responseMap['Data'].toString()}");
+      for (var i = 0; i < mokaPaymentData.data.listItemCount; i++) {
+        PaymentList paymentListObject = mokaPaymentData.data.paymentList[i];
+        paymentList.add(paymentListObject);
+      }
     });
-    return "dasd";
+    print("Payment List: ${paymentList.length.toString()}");
+    return paymentList;
+  }
+
+  Widget buildList(BuildContext context, AsyncSnapshot snapshot) {
+    List<PaymentList> _paymentList = snapshot.data;
+    print(_paymentList.length);
+    return ListView.builder(
+        itemCount: _paymentList.length,
+        scrollDirection: Axis.vertical,
+        shrinkWrap: true,
+        itemBuilder: (context, int index) => Card(
+              elevation: 8.0,
+              margin: new EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+              child: Container(
+                decoration: BoxDecoration(color: HexColor("202020")),
+                child: ListTile(
+                  contentPadding:
+                      EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+                  title: Text(
+                    '${_paymentList[index].cardHolderFullName}',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  subtitle: Row(
+                    children: <Widget>[
+                      Icon(
+                        Icons.date_range_outlined,
+                        color: Colors.amberAccent,
+                        size: 20,
+                      ),
+                      Text(
+                        " " +
+                            _paymentList[index]
+                                .paymentDate
+                                .split("T")[0]
+                                .toString() +
+                            " ",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      Icon(
+                        Icons.monetization_on,
+                        color: Colors.amberAccent,
+                        size: 20,
+                      ),
+                      Text(
+                        " " + _paymentList[index].amount.toString() + " ",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ],
+                  ),
+                  leading: Container(
+                    padding: EdgeInsets.only(right: 12.0),
+                    decoration: new BoxDecoration(
+                      border: new Border(
+                        right:
+                            new BorderSide(width: 1.0, color: Colors.white24),
+                      ),
+                    ),
+                    child: Icon(
+                        (_paymentList[index].paymentStatus) == 1
+                            ? Icons.beenhere_rounded
+                            : Icons.warning,
+                        color: (_paymentList[index].paymentStatus) == 1
+                            ? Colors.greenAccent
+                            : Colors.redAccent),
+                  ),
+                  trailing: Icon(
+                    Icons.arrow_forward_ios,
+                    color: Colors.white,
+                  ),
+                  onTap: () {
+                    print(index);
+                  },
+                ),
+              ),
+            ));
   }
 }

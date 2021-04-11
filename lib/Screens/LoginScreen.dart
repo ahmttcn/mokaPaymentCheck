@@ -211,7 +211,7 @@ Future<String> logIn(BuildContext context) async {
     variables['password'] = passwordController.text.trim();
     print(variables);
 
-    await Services.httpPost(Urls.login, variables: variables)
+    await Services.httpPost(Urls.login, isJson: false, variables: variables)
         .then((response) async {
       Map responseMap = json.decode(response.body);
 

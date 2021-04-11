@@ -162,7 +162,7 @@ class _AddFirmState extends State<AddFirm> {
     variables['dbPassword'] = qrMap['password'].toString();
     variables['addFirm'] = "addFirm";
 
-    await Services.httpPost(Urls.addFirm, variables: variables)
+    await Services.httpPost(Urls.addFirm, isJson: false, variables: variables)
         .then((response) async {
       Map responseMap = json.decode(response.body);
 

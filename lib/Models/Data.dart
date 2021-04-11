@@ -5,21 +5,41 @@ class Data {
   String resultCode;
   String resultMessage;
   int listItemCount;
-  PaymentList paymentList;
+  List<PaymentList> paymentList;
 
-  Data({
-    this.isSuccessful,
-    this.resultCode,
-    this.resultMessage,
-    this.listItemCount,
-    this.paymentList,
-  });
+  Data(
+      {this.isSuccessful,
+      this.resultCode,
+      this.resultMessage,
+      this.listItemCount,
+      this.paymentList});
 
-  Data.fromJson(Map json) {
-    this.isSuccessful = json['IsSuccessful'];
-    this.resultCode = json['ResultCode'];
-    this.resultMessage = json['ResultMessage'];
-    this.listItemCount = json['ListItemCount'];
-    this.paymentList = json['PaymentList'];
+  Data.fromJson(Map<String, dynamic> json) {
+    isSuccessful = json['IsSuccessful'];
+    resultCode = json['ResultCode'];
+    resultMessage = json['ResultMessage'];
+    listItemCount = json['ListItemCount'];
+    if (json['PaymentList'] != null) {
+      paymentList = [];
+      json['PaymentList'].forEach((v) {
+        paymentList.add(new PaymentList.fromJson(v));
+      });
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['IsSuccessful'] = this.isSuccessful;
+    data['ResultCode'] = this.resultCode;
+    data['ResultMessage'] = this.resultMessage;
+    data['ListItemCount'] = this.listItemCount;
+    if (this.paymentList != null) {
+      data['PaymentList'] = this.paymentList.map((v) => v.toJson()).toList();
+    }
+    return data;
   }
 }
+
+int intYunus = 10;
+String str = "jksdhfkshdfıushfuhsdfs";
+double double1 = 0.005;

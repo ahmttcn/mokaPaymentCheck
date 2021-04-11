@@ -1,5 +1,6 @@
+import 'dart:convert';
+
 import 'package:http/http.dart' as http;
-import 'Urls.dart';
 
 class Services {
   static const ROOT = 'http://localhost/EmployeesDB/employee_actions.php';
@@ -7,10 +8,18 @@ class Services {
   static const _UPDATE_EMP_ACTION = 'UPDATE_EMP';
   static const _DELETE_EMP_ACTION = 'DELETE_EMP';
 
-  static Future<http.Response> httpPost(String url, {Map variables}) async {
+  static Future<http.Response> httpPost(String url,
+      {bool isJson, Map variables, Map<String, String> headers}) async {
     try {
-      final response = await http.post(url, body: variables);
-      print('Login Response: ${response.body}');
+      final response = await http.post(url,
+          headers: (isJson)
+              ? {
+                  "content-type": "application/json",
+                  "accept": "application/json",
+                }
+              : {"content-type": "application/x-www-form-urlencoded"},
+          body: (isJson) ? json.encode(variables) : variables);
+      //print('Login Response: ${response.body}');
 
       if (200 == response.statusCode) {
         return response;

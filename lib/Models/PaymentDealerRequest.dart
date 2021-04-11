@@ -18,12 +18,11 @@ class PaymentDealerRequest {
     this.trxStatus = json['TrxStatus'];
   }
 
-  Map toMap(PaymentDealerRequest paymentDealerRequest) {
-    Map map = new Map();
-    map['PaymentStartDate'] = paymentDealerRequest.paymentStartDate;
-    map['PaymentEndDate'] = paymentDealerRequest.paymentEndDate;
-    map['PaymentStatus'] = paymentDealerRequest.paymentStatus;
-    map['TrxStatus'] = paymentDealerRequest.trxStatus;
-    return map;
-  }
+  Map<String, dynamic> toMap(PaymentDealerRequest paymentDealerRequest) =>
+      <String, dynamic>{
+        'PaymentStartDate': paymentDealerRequest.paymentStartDate,
+        'PaymentEndDate': paymentDealerRequest.paymentEndDate,
+        'PaymentStatus': paymentDealerRequest.paymentStatus,
+        'TrxStatus': paymentDealerRequest.trxStatus,
+      };
 }

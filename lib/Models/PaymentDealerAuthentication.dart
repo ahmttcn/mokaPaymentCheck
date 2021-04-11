@@ -18,12 +18,12 @@ class PaymentDealerAuthentication {
     this.checkKey = json['CheckKey'];
   }
 
-  Map toMap(PaymentDealerAuthentication paymentDealerAuthentication) {
-    Map map = new Map();
-    map['DealerCode'] = paymentDealerAuthentication.dealerCode;
-    map['Username'] = paymentDealerAuthentication.username;
-    map['Password'] = paymentDealerAuthentication.password;
-    map['CheckKey'] = paymentDealerAuthentication.checkKey;
-    return map;
-  }
+  Map<String, dynamic> toMap(
+          PaymentDealerAuthentication paymentDealerAuthentication) =>
+      <String, dynamic>{
+        'DealerCode': paymentDealerAuthentication.dealerCode,
+        'Username': paymentDealerAuthentication.username,
+        'Password': paymentDealerAuthentication.password,
+        'CheckKey': paymentDealerAuthentication.checkKey,
+      };
 }
