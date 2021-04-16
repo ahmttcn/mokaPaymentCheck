@@ -9,9 +9,11 @@ import 'package:payment_check/Models/PaymentDealerAuthentication.dart';
 import 'package:payment_check/Models/PaymentDealerRequest.dart';
 import 'package:payment_check/Models/PaymentList.dart';
 import 'package:payment_check/Models/SharedPref.dart';
+import 'package:payment_check/Screens/PaymentDetailScreen.dart';
 import 'package:payment_check/Utils/Services.dart';
 import 'package:crypto/crypto.dart';
 import 'package:intl/intl.dart';
+import 'package:payment_check/Utils/Urls.dart';
 
 class QueryScreen extends StatefulWidget {
   QueryScreen({Key key}) : super(key: key);
@@ -20,7 +22,8 @@ class QueryScreen extends StatefulWidget {
   _QueryScreenState createState() => _QueryScreenState();
 }
 
-class _QueryScreenState extends State<QueryScreen> {
+class _QueryScreenState extends State<QueryScreen>
+    with AutomaticKeepAliveClientMixin<QueryScreen> {
   String startStr = DateFormat('yyyy-MM-dd kk:mm').format(DateTime.now());
   String endStr = DateFormat('yyyy-MM-dd kk:mm').format(DateTime.now());
   List data;
@@ -32,6 +35,7 @@ class _QueryScreenState extends State<QueryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       backgroundColor: HexColor("1f1f1f"),
       body: Flex(
@@ -126,11 +130,19 @@ class _QueryScreenState extends State<QueryScreen> {
               },
               onConfirm: (date) {
                 setState(() {
-                  startStr = DateFormat('yyyy-MM-dd kk:mm').format(date);
+                  if (date.hour == 00) {
+                    startStr =
+                        DateFormat('yyyy-MM-dd 00:mm').format(date).toString();
+                  } else {
+                    startStr =
+                        DateFormat('yyyy-MM-dd kk:mm').format(date).toString();
+                  }
                 });
-                print('confirm $date');
+                print(startStr);
+                print('confirm ' +
+                    DateFormat('yyyy-MM-dd kk:mm').format(date).toString());
               },
-              currentTime: DateTime.now(),
+              currentTime: DateTime.parse(startStr),
               locale: LocaleType.tr,
             );
           },
@@ -154,14 +166,17 @@ class _QueryScreenState extends State<QueryScreen> {
               },
               onConfirm: (date) {
                 setState(() {
-                  endStr = DateFormat('yyyy-MM-dd kk:mm').format(date);
+                  if (date.hour == 00) {
+                    endStr =
+                        DateFormat('yyyy-MM-dd 00:mm').format(date).toString();
+                  } else {
+                    endStr =
+                        DateFormat('yyyy-MM-dd kk:mm').format(date).toString();
+                  }
                 });
                 print('confirm $date');
-                String formattedDate =
-                    DateFormat('yyyy-MM-dd kk:mm').format(date);
-                endStr = formattedDate.toString();
               },
-              currentTime: DateTime.now(),
+              currentTime: DateTime.parse(endStr),
               locale: LocaleType.tr,
             );
           },
@@ -203,7 +218,7 @@ class _QueryScreenState extends State<QueryScreen> {
         paymentDealerRequest: paymentDealerRequest);
     print(paymentDealerAuthentication.username.toString());
     await Services.httpPost(
-      'https://service.moka.com/PaymentDealer/GetPaymentList',
+      Urls.getPaymentList,
       isJson: true,
       variables: getPaymentList.toJson(),
     ).then((response) async {
@@ -211,7 +226,8 @@ class _QueryScreenState extends State<QueryScreen> {
       MokaPaymentData mokaPaymentData = MokaPaymentData.fromJson(responseMap);
       print("MokaPaymentData: ${responseMap['Data'].toString()}");
       for (var i = 0; i < mokaPaymentData.data.listItemCount; i++) {
-        PaymentList paymentListObject = mokaPaymentData.data.paymentList[i];
+        PaymentList paymentListObject = mokaPaymentData
+            .data.paymentList[mokaPaymentData.data.listItemCount - 1 - i];
         paymentList.add(paymentListObject);
       }
     });
@@ -223,73 +239,81 @@ class _QueryScreenState extends State<QueryScreen> {
     List<PaymentList> _paymentList = snapshot.data;
     print(_paymentList.length);
     return ListView.builder(
-        itemCount: _paymentList.length,
-        scrollDirection: Axis.vertical,
-        shrinkWrap: true,
-        itemBuilder: (context, int index) => Card(
-              elevation: 8.0,
-              margin: new EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
-              child: Container(
-                decoration: BoxDecoration(color: HexColor("202020")),
-                child: ListTile(
-                  contentPadding:
-                      EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-                  title: Text(
-                    '${_paymentList[index].cardHolderFullName}',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  subtitle: Row(
-                    children: <Widget>[
-                      Icon(
-                        Icons.date_range_outlined,
-                        color: Colors.amberAccent,
-                        size: 20,
-                      ),
-                      Text(
-                        " " +
-                            _paymentList[index]
-                                .paymentDate
-                                .split("T")[0]
-                                .toString() +
-                            " ",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      Icon(
-                        Icons.monetization_on,
-                        color: Colors.amberAccent,
-                        size: 20,
-                      ),
-                      Text(
-                        " " + _paymentList[index].amount.toString() + " ",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ],
-                  ),
-                  leading: Container(
-                    padding: EdgeInsets.only(right: 12.0),
-                    decoration: new BoxDecoration(
-                      border: new Border(
-                        right:
-                            new BorderSide(width: 1.0, color: Colors.white24),
-                      ),
-                    ),
-                    child: Icon(
-                        (_paymentList[index].paymentStatus) == 1
-                            ? Icons.beenhere_rounded
-                            : Icons.warning,
-                        color: (_paymentList[index].paymentStatus) == 1
-                            ? Colors.greenAccent
-                            : Colors.redAccent),
-                  ),
-                  trailing: Icon(
-                    Icons.arrow_forward_ios,
-                    color: Colors.white,
-                  ),
-                  onTap: () {
-                    print(index);
-                  },
+      itemCount: _paymentList.length,
+      scrollDirection: Axis.vertical,
+      shrinkWrap: true,
+      itemBuilder: (context, int index) => Card(
+        elevation: 8.0,
+        margin: new EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+        child: Container(
+          decoration: BoxDecoration(color: HexColor("202020")),
+          child: ListTile(
+            contentPadding:
+                EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+            title: Text(
+              '${_paymentList[index].cardHolderFullName}',
+              style: TextStyle(color: Colors.white),
+            ),
+            subtitle: Row(
+              children: <Widget>[
+                Icon(
+                  Icons.date_range_outlined,
+                  color: Colors.amberAccent,
+                  size: 20,
+                ),
+                Text(
+                  " " +
+                      _paymentList[index].paymentDate.split("T")[0].toString() +
+                      " ",
+                  style: TextStyle(color: Colors.white),
+                ),
+                Icon(
+                  Icons.monetization_on,
+                  color: Colors.amberAccent,
+                  size: 20,
+                ),
+                Text(
+                  " " + _paymentList[index].amount.toString() + " ",
+                  style: TextStyle(color: Colors.white),
+                ),
+              ],
+            ),
+            leading: Container(
+              padding: EdgeInsets.only(right: 12.0),
+              decoration: new BoxDecoration(
+                border: new Border(
+                  right: new BorderSide(width: 1.0, color: Colors.white24),
                 ),
               ),
-            ));
+              child: Icon(
+                  (_paymentList[index].trxStatus) == 1
+                      ? Icons.beenhere_rounded
+                      : Icons.warning,
+                  color: (_paymentList[index].trxStatus) == 1
+                      ? Colors.greenAccent
+                      : Colors.redAccent),
+            ),
+            trailing: Icon(
+              Icons.arrow_forward_ios,
+              color: Colors.white,
+            ),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      PaymentDetail(paymentList: _paymentList[index]),
+                  fullscreenDialog: true,
+                  maintainState: true,
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

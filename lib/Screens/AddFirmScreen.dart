@@ -176,6 +176,7 @@ class _AddFirmState extends State<AddFirm> {
         MokaFirmInfo mokaFirmInfo;
         if (responseMap['message'] == "Moka") {
           mokaFirmInfo = new MokaFirmInfo.fromJson(responseMap['moka']);
+          print(mokaFirmInfo.typeId);
           await SharedPref.addMoka(mokaFirmInfo).then((value) {
             if (value) {
               print("Moka added");

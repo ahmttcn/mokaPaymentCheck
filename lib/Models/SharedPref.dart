@@ -148,6 +148,8 @@ class SharedPref {
       await _sharedPref.setString("mokaUsername", firm.username.toString());
       await _sharedPref.setString("mokaPassword", firm.password.toString());
       await _sharedPref.setString("mokaDealerCode", firm.dealerCode.toString());
+      await _sharedPref.setString("mokaTypeId", firm.typeId.toString());
+      await _sharedPref.setString("mokaRecord", firm.record.toString());
       await _sharedPref.setString("moka", "added");
       return true;
     } catch (e) {
@@ -162,6 +164,8 @@ class SharedPref {
         username: _sharedPref.getString("mokaUsername"),
         password: _sharedPref.getString("mokaPassword"),
         dealerCode: _sharedPref.getString("mokaDealerCode"),
+        typeId: _sharedPref.getString("mokaTypeId"),
+        record: _sharedPref.getString("mokaRecord"),
       );
       return firm;
     } catch (e) {
@@ -174,6 +178,8 @@ class SharedPref {
       await _sharedPref.remove("mokaUsername");
       await _sharedPref.remove("mokaPassword");
       await _sharedPref.remove("mokaDealerCode");
+      await _sharedPref.remove("mokaTypeId");
+      await _sharedPref.remove("mokaRecord");
       await _sharedPref.remove("moka");
     } catch (e) {
       print(e);

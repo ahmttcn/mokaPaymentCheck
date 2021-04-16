@@ -19,7 +19,7 @@ class Services {
                 }
               : {"content-type": "application/x-www-form-urlencoded"},
           body: (isJson) ? json.encode(variables) : variables);
-      //print('Login Response: ${response.body}');
+      print('Login Response: ${response.body}');
 
       if (200 == response.statusCode) {
         return response;

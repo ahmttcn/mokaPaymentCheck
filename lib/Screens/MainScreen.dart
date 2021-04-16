@@ -13,7 +13,9 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen>
-    with SingleTickerProviderStateMixin {
+    with
+        SingleTickerProviderStateMixin,
+        AutomaticKeepAliveClientMixin<MainScreen> {
   TabController _tabController;
   ScrollController _scrollController;
   @override
@@ -31,7 +33,11 @@ class _MainScreenState extends State<MainScreen>
   }
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       body: NestedScrollView(
         controller: _scrollController,
